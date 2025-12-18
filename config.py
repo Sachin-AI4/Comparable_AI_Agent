@@ -24,12 +24,7 @@ DOMAIN_CATEGORIES = [
     "Product-based"
 ]
 
-# TLD Families
-# TLD_FAMILIES = {
-#     "premium_tech": [".ai", ".io", ".co"],
-#     "standard": [".com", ".in"],
-#     "country": [".uk", ".de", ".ca", ".au"]
-# }
+
 
 TLD_FAMILIES = {
     # FAMILY: LEGACY GOLD
@@ -52,16 +47,16 @@ TLD_FAMILIES = {
     # Reason: Highest aftermarket ASPs in 2024-25. Primary target for 
     # venture-backed tech startups.
     # Price Band: $5,000 - $300,000
-    "tech_elite": [
-        ".ai", ".io"
-    ],
+    # "tech_elite": [
+    #     ".ai", ".io"
+    # ],
     
     # FAMILY: MODERN TECH & BRANDING
     # Reason: Strong alternatives for modern brands. Favored for mobile apps 
     # and SaaS with slightly lower price ceilings than the elite tier.
     # Price Band: $1,000 - $50,000
     "tech_modern": [
-        ".co", ".app", ".dev", ".tech", ".cloud", ".software"
+        ".ai", ".io", ".co", ".app", ".dev", ".tech", ".cloud", ".software"
     ],
     
     # FAMILY: CORPORATE & SMB LEGAL
