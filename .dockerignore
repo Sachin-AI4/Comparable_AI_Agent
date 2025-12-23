@@ -46,7 +46,7 @@ build/
 dist/
 *.egg-info/
 
-main.py
+
 # IMPORTANT: Do NOT exclude these:
 # chroma_db/        <- We NEED this in the image
 # *.sqlite3         <- We NEED this for ChromaDB
