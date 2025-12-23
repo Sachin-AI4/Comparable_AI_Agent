@@ -1,20 +1,52 @@
+# Python cache
 __pycache__
 *.pyc
 *.pyo
 *.pyd
 .Python
+
+# Virtual environments
 env/
 venv/
 .venv/
+
+# Environment variables
 .env
+
+# Git
 .git
 .gitignore
+
+# IDE
 .idea
 .vscode
+.cursor
+
+# Documentation
 *.md
+README.md
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Logs
 *.log
-*.sqlite
-*.sqlite3
+
+# Node modules (if any)
 node_modules/
+
+# Test files
 .pytest_cache/
+test_*.py
+*_test.py
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# IMPORTANT: Do NOT exclude these:
+# chroma_db/        <- We NEED this in the image
+# *.sqlite3         <- We NEED this for ChromaDB
+# data/combined.csv <- Exclude if large, but we don't need it at runtime

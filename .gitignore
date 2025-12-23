@@ -40,9 +40,7 @@ ENV/
 .env
 .env.local
 
-# ChromaDB data
-chroma_db/
-chroma_db_data/
+
 
 # Logs
 *.log

@@ -55,7 +55,7 @@ class DomainSearchResponse(BaseModel):
     error: Optional[str] = None
     timestamp: str
 
-# API Endpoints
+
 @app.on_event("startup")
 async def startup_event():
     """Initialize the agent on startup"""
@@ -64,25 +64,59 @@ async def startup_event():
         logger.info("=" * 60)
         logger.info("🚀 STARTING DOMAIN COMPARABLE AGENT API")
         logger.info("=" * 60)
-        logger.info("Step 1: Importing dependencies...")
-        logger.info("Step 2: Creating agent graph...")
         
+        # Verify ChromaDB files exist
+        import os
+        chroma_path = "./chroma_db"
+        sqlite_path = f"{chroma_path}/chroma.sqlite3"
+        
+        logger.info(f"Checking ChromaDB at: {chroma_path}")
+        
+        if not os.path.exists(chroma_path):
+            logger.error(f"❌ ChromaDB directory not found: {chroma_path}")
+            raise FileNotFoundError(f"ChromaDB directory missing")
+        
+        if not os.path.exists(sqlite_path):
+            logger.error(f"❌ ChromaDB database not found: {sqlite_path}")
+            logger.error("💡 Hint: Check if .dockerignore excludes *.sqlite3 files")
+            raise FileNotFoundError(f"ChromaDB database missing")
+        
+        db_size = os.path.getsize(sqlite_path) / (1024 * 1024)  # MB
+        logger.info(f"✅ ChromaDB database found ({db_size:.2f} MB)")
+        
+        logger.info("Step 1: Creating agent graph...")
         agent_graph = create_agent_graph()
         
-        logger.info("✅ Agent initialized successfully!")
-        logger.info("✅ ChromaDB connection established")
-        logger.info("✅ LLM enricher ready")
+        logger.info("Step 2: Validating ChromaDB contents...")
+        from src.enrichment.retrieval.chroma_client import ChromaClient
+        chroma = ChromaClient()
+        doc_count = chroma.collection.count()
+        
+        logger.info(f"✅ ChromaDB loaded successfully")
+        logger.info(f"✅ Total documents: {doc_count:,}")
+        
+        if doc_count == 0:
+            logger.error("❌ ChromaDB is empty (0 documents)")
+            raise ValueError("ChromaDB contains no documents - run build_and_export_embeddings.py first")
+        
         logger.info("=" * 60)
         logger.info("🎉 API IS READY TO ACCEPT REQUESTS")
+        logger.info(f"🔗 Access at: http://localhost:8000")
+        logger.info(f"📚 Docs at: http://localhost:8000/docs")
         logger.info("=" * 60)
+        
     except Exception as e:
         logger.error("=" * 60)
         logger.error("❌ AGENT INITIALIZATION FAILED!")
-        logger.error(f"❌ Error: {str(e)}")
+        logger.error(f"❌ Error Type: {type(e).__name__}")
+        logger.error(f"❌ Error Message: {str(e)}")
         logger.error("=" * 60)
         import traceback
         logger.error(traceback.format_exc())
         raise
+# API Endpoints
+
+
 
 @app.get("/")
 async def root():
@@ -185,6 +219,6 @@ if __name__ == "__main__":
         "api:app",
         host="0.0.0.0",
         port=8000,
-        reload=True,
+        reload=False,
         log_level = "info"
     )

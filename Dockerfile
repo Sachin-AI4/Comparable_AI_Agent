@@ -1,4 +1,5 @@
-# Use Python 3.11 slim image
+
+# Use Python 3.11 slim image for smaller size
 FROM python:3.11-slim
 
 # Set working directory
@@ -10,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first (for layer caching)
+# Copy requirements first (for Docker layer caching)
 COPY requirements.txt .
 
 # Install Python dependencies
@@ -19,19 +20,21 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the entire project
 COPY . .
 
-# Create directory for ChromaDB persistence
-RUN mkdir -p /app/chroma_db
+# Verify ChromaDB files are present
+RUN echo "=== Verifying ChromaDB Installation ===" && \
+    ls -lah /app/chroma_db/ && \
+    if [ -f "/app/chroma_db/chroma.sqlite3" ]; then \
+        echo "✅ ChromaDB database found ($(du -h /app/chroma_db/chroma.sqlite3 | cut -f1))"; \
+        echo "✅ Total ChromaDB size: $(du -sh /app/chroma_db | cut -f1)"; \
+    else \
+        echo "❌ ERROR: chroma.sqlite3 NOT found!"; \
+        echo "Check that .dockerignore doesn't exclude *.sqlite3"; \
+        exit 1; \
+    fi
 
-# Expose the port
+# Expose port 8000
 EXPOSE 8000
 
-# Environment variables
-# ENV 
-# ENV PYTHONDONTWRITEBYTECODE=1
-
-# # Health check
-# HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-#     CMD curl -f http://localhost:8000/health || exit 1
-
 # Run the application
-CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
+# Using single worker since ChromaDB doesn't support multi-process access
+CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
