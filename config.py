@@ -157,3 +157,45 @@ RECENCY_BANDS = [
 
 ENABLE_NUMERIC_FILTER = True
 NUMERIC_THRESHOLD = 0.3
+
+
+# =====================================================================
+# NameBio integration (ingest pipeline)
+# =====================================================================
+
+# Base URL of the NameBio microservice REST API.
+NAMEBIO_BASE_URL = os.getenv("NAMEBIO_BASE_URL", "https://namebio.vps4.auctionhacker.com")
+
+# Page size when paging through NameBio /namebio/sales for a given date.
+NAMEBIO_PAGE_SIZE = int(os.getenv("NAMEBIO_PAGE_SIZE", "500"))
+
+# Schema-qualified vector table (existing corpus, vector(384)).
+DOMAIN_EMBEDDINGS_TABLE = os.getenv("DOMAIN_EMBEDDINGS_TABLE", "domainvaluation1.domain_embeddings")
+
+# Confidence bands for routing rule-engine output (information-theory routing):
+#   >= HIGH            -> accept rule result, embed now
+#   MEDIUM .. HIGH     -> accept rule result + embed now, but queue lazily for LLM upgrade
+#   <  MEDIUM          -> do NOT embed; queue immediately for LLM
+HIGH_CONFIDENCE = float(os.getenv("HIGH_CONFIDENCE", "0.75"))
+MEDIUM_CONFIDENCE = float(os.getenv("MEDIUM_CONFIDENCE", "0.45"))
+LOW_CONFIDENCE = float(os.getenv("LOW_CONFIDENCE", "0.20"))
+
+# A sale at/above this price forces the domain to LLM enrichment regardless
+# of rule confidence (queue_reason=premium_domain).
+PREMIUM_PRICE_THRESHOLD = float(os.getenv("PREMIUM_PRICE_THRESHOLD", "10000"))
+
+# Versioning: bump these to selectively refresh stale rows via
+# `WHERE enrichment_version < CURRENT_ENRICHMENT_VERSION`.
+CURRENT_ENRICHMENT_VERSION = int(os.getenv("CURRENT_ENRICHMENT_VERSION", "1"))
+CURRENT_EMBEDDING_VERSION = int(os.getenv("CURRENT_EMBEDDING_VERSION", "1"))
+
+# Embedding batch size for the local sentence-transformers encoder.
+EMBED_BATCH_SIZE = int(os.getenv("EMBED_BATCH_SIZE", "256"))
+
+# Queue priorities (higher drains first).
+QUEUE_PRIORITY = {
+    "premium_domain": 30,
+    "demand": 20,
+    "embeddings_missing": 15,
+    "low_confidence": 10,
+}

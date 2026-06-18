@@ -40,7 +40,7 @@ class LLMEnricher:
 
         # Parse JSON Response
         try:
-            result = json.loads(response.content)
+            result = json.loads(self._clean_json(response.content))
 
             # Validate structure
             assert "primary_category" in result
@@ -54,3 +54,30 @@ class LLMEnricher:
 
         except (json.JSONDecodeError, AssertionError) as e:
             raise ValueError(f"Invalid LLM response format: {e}\nResponse: {response.content}")
+
+    @staticmethod
+    def _clean_json(content: str) -> str:
+        """
+        Tolerate common LLM formatting artifacts before json.loads:
+        - ```json ... ``` / ``` ... ``` code fences
+        - doubled braces {{ ... }} (some models echo the prompt's escaping)
+        - leading/trailing prose around the JSON object
+        Only normalizes; a clean response is returned unchanged.
+        """
+        if not content:
+            return content
+        s = content.strip()
+        # strip code fences
+        if s.startswith("```"):
+            s = s.split("```", 2)[1] if s.count("```") >= 2 else s.strip("`")
+            if s.lstrip().lower().startswith("json"):
+                s = s.lstrip()[4:]
+            s = s.strip()
+        # slice to the outermost JSON object
+        start, end = s.find("{"), s.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            s = s[start:end + 1]
+        # collapse doubled braces -> single
+        if "{{" in s or "}}" in s:
+            s = s.replace("{{", "{").replace("}}", "}")
+        return s
