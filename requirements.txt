@@ -18,3 +18,7 @@ uvicorn[standard]
 
 psycopg2-binary>=2.9.9
 pgvector>=0.2.3
+
+# NameBio ingest integration
+requests>=2.31.0
+tenacity>=8.2.0

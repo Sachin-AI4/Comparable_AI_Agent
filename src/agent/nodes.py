@@ -5,6 +5,7 @@ from src.enrichment.llm_enricher import LLMEnricher
 from src.enrichment.retrieval.supabase_client import SupabaseClient
 from src.enrichment.retrieval.filters import build_where_clause, get_tld_family, apply_numeric_filter
 from src.enrichment.retrieval.scoring import score_candidates
+from src.enrichment.namebio.demand import enqueue_demand
 
 import config
 
@@ -202,7 +203,12 @@ def retrieve_node(state: AgentState) ->Dict:
                 )
             
             print(f"[INFO] Expanded search found {len(all_candidates)} results across all TLDs\n")
-        
+
+        # Demand signal: a user just searched this domain, so it deserves
+        # high-quality LLM enrichment. Best-effort and non-blocking — never
+        # let this affect the search result.
+        enqueue_demand(state.get("input_domain"))
+
         return {"raw_candidates": all_candidates}
 
     except Exception as e:
